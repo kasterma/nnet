@@ -1,0 +1,37 @@
+---
+title: 'Notes Lecture 1: Introduction'
+output: html_document
+---
+
+# Some simple models of neurons
+
+## linear neurons
+
+  $$y = b + \sum_i x_i w_i$$
+
+Here $y =$ output, and $x_i = i$-th input.  The sum is over the input connections.
+
+## binary threshold neurons
+
+  $$z = b + \sum_i x_i w_i$$
+  $$y = \text{ if } z >= 0 \text{ then } 1 \text{ else } 0$$
+
+Can rewrite the bias to be a threshold in the if statement (threshold should be
+-b).
+
+## rectified linear neurons
+
+  $$z = b + \sum_i x_i w_i$$
+  $$y = \text{ if } z >= 0 \text{ then } z \text{ else } 0$$
+
+## sigmoid neurons
+
+  $$z = b + \sum_i x_i w_i$$
+  $$y = 1 / (1 + \exp(-z)) = S(z)$$
+  
+where S is the sigmoid function.
+
+# Simple example of learning
+
+Learning handwritten digits by learning templates; winner is the template that
+has the most overlap (weighted) with the written digit.
