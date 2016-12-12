@@ -1,0 +1,14 @@
+---
+title: 'Notes Lecture 3: The backpropagation learning procedure'
+output: html_document
+---
+
+# Learning the weights of a linear neuron
+
+# The error surface of a linear neuron
+
+# Learning the weights of a logistic output neuron
+
+# The backpropagation algorithm
+
+# Using the derivaties computed by backpropagation
