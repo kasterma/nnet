@@ -1,0 +1,115 @@
+---
+title: 'Notes lecture 6: Optimisation: How to make the learning go faster'
+output: html_document
+---
+
+```{r setup, message=FALSE}
+library(pryr)
+library(ggplot2)
+library(dplyr)
+```
+
+## Overview of mini-batch gradient descent
+
+Mini-batch stochastic gradient descent.
+
+The step of steepest descent does not always point to the minimum unless the
+ellipse is a circle.  The same issues happen for non-linear multi-layer nets.
+Then computing the gradient for the whole dataset is wastefull.
+
+## Reminder on gradient descent (get it done in R)
+
+Here we take a simple function and run some steps of gradient descent along it.
+
+```{r createFn}
+f1 <- function(x, y) x^2 + y^2
+f1_h = f(x, f1(x[1], x[2]))   # helper, since numDeriv wants a one input fn
+```
+
+Compute the gradient.
+
+```{r}
+library(numDeriv)
+grad(func = f1_h, x = c(1,2))
+```
+
+For this simple function you could as well do a very simple approximation
+
+```{r}
+eps <- 0.0001
+grad_x <- (f1(1 + eps,2) - f1(1, 2))/eps
+grad_y <- (f1(1, 2 + eps) - f1(1, 2))/eps
+c(grad_x, grad_y)
+```
+
+Now we do a couple of steps of descent and store the results
+
+```{r}
+eps <- 0.1
+N <- 20
+vals <- vector("list", length = N)
+vals[[1]] <- c(1,2)
+grad <- vector("list", length = N - 1)
+
+for (idx in seq_len(N - 1)) {
+  grad[[idx]] <- grad(func = f1_h, x = vals[[idx]])
+  vals[[idx + 1]] <- vals[[idx]] - eps * grad[[idx]]
+}
+```
+
+Here then a plot of the descent (note the arrows are not orthogonal to the
+level lines b/c the x and y axes are not scaled identically)
+
+```{r}
+dat <- setNames(as.data.frame(do.call(rbind, vals)), c('x', 'y'))
+
+dat_contour <-
+  expand.grid(x = seq(0, 2, by = 0.2), y = seq(0, 2, by = 0.2)) %>%
+  mutate(z = f1(x,y))
+
+dat_steps <-
+  cbind(dat[1:(N - 1),], rename(dat[2:N,], xend = x, yend = y))
+
+ggplot(dat = dat, aes_(x = ~x, y = ~y)) +
+  geom_contour(dat = dat_contour, aes_(x = ~x, y = ~y, z = ~z)) +
+  geom_curve(dat = dat_steps, aes_(x = ~x, y = ~y, xend = ~xend, yend = ~yend),
+             arrow = arrow(length = unit(0.03, "npc")),
+             curvature = 0, color = "grey") +
+  geom_point()
+```
+
+## A bag of tricks for mini-batch gradient descent
+
+- initialize weights randomly to break symmetry
+- to not overshoot by adding many small contributions, scale the initialization
+  by the fan-in; initialize by random weights proportional to `sqrt(fan-in)`.
+- [kasterma: not understood] can also use this for the learning rate
+- helps to shift inputs to have mean zero over the whole training set
+- gives an argument in favor of using hyperbolic tangent (2* logistic - 1) since
+  then if inputs are distributed around zero, so are the outputs which helps with
+  learning on the next level.
+- scaling input feature values to have unit variance over whole training set
+- better than these two: decorrelate the input components
+  (multiple steps described in slides: PCA, drop, scale)
+  
+Goal is a circular error surface (or good approx) since then gradient points
+towards minimum.
+
+- starting with a too large learning weight will give the hidden units large
+  values; then the error derivatives for those hidden units become small and
+  learning will go very slow.  But we are NOT near a local minimum.
+- with squared error or cross entropy error, the best guessing strategy is to
+  give the output neuron a value equal to the proportion of the time it should
+  be one.  Then we are at a plateau where to get out of it the network needs
+  to learn actual features (for guessing it doesn't)
+- don't turn down the learning rate too soon or too much (quick gain, but then
+  go slow)
+  
+for ways to speed up
+- momentum
+- separate learning rates per connection, and adjust this rate according to the
+  consistency of the gradient for that parameter
+- rmsprop
+- use full batch, but with info about curvature (this is to use fancy methods)
+
+## The momentum method
