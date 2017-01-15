@@ -5,6 +5,97 @@ output: html_document
 
 # Learning the weights of a linear neuron
 
+Perceptron learning makes progress by getting closer to a good set of weights,
+along the way many outputs can become worse.  Since in a more complex network the
+average of two good weights could be not good, this cannot be achieved in
+this context (the set of good weights is not convex, hence to get close to a
+good weight, we'd need a consistent selection of the good weight we get closer
+to in order to make progress).
+
+We'll in stead ensure that the output gets closer to the intended output (using
+the derivative of the error).
+
+--------------
+
+## Example of bad average
+
+Here are two networks that in the output node give an activation of the sum
+of the input nodes.  If we threshold this output at 0 we get a perfect
+classifier for positive or negative sum of the features F1 and F2.  The
+average is the network will all weights set to zero, which obviously only
+classifies trivial problems correctly.
+
+```{r, message=FALSE, echo=FALSE}
+library(igraph)
+
+G_vert <- data.frame(name = c("F1", "H", "F2", "O"))
+G_edge <- data.frame(from = c("F1", "F2", "H"),
+                     to = c("H", "H", "O"),
+                     wts1 = c(1, 1, 1),
+                     wts2 = c(-1, -1, -1))
+G <- graph_from_data_frame(G_edge, vertices = G_vert)
+pts_locs <- t(matrix(c(0,-1,1, 0,0,1,2,0), nrow = 2))
+plot(G, layout = pts_locs, edge.label = E(G)$wts1, main = "Network with 1")
+plot(G, layout = pts_locs, edge.label = E(G)$wts2, main = "Network with -1")
+```
+
+------------------------------
+
+A linear neuron with given weigths
+
+```{r}
+lin_neuron <- function(wts) {
+  function(x) {
+    stopifnot(length(x) == length(wts))
+    x %*% wts
+  }
+}
+
+lin_neuron_with_bias <- function(wts) {
+  function(x) {
+    stopifnot(length(x) + 1 == length(wts))
+    c(1,x) %*% wts
+  }
+}
+
+l1 <- lin_neuron(c(1,2,3))
+l1(c(3,2,1))
+
+l2 <- lin_neuron_with_bias(c(1,2,3,4))
+l2(c(3,2,1))
+```
+
+Reason for not completely working this out analytically in simple cases is
+to get a method that can generalize well to other networks and neuron types
+where this would not be possible.
+
+Fish, chips, and ketchup example.
+
+The error is computed as follows
+
+   $$E = 1/2 \sum_{n \in \text{learning}} (t^n - y^n)^2$$
+Computing derivative gives
+
+   $$\frac{\partial E}{\partial w_i} = - \sum_n x_i (t^n - y^n)$$
+With this we derive the Delta rule to be
+
+  $$\Delta w_i = - \epsilon \frac{\partial E}{\partial w_i}
+               = \epsilon \sum_n x_i (t^n - y^n)$$
+
+A computation that I have not found a good use for yet, but that is hard not
+to do is the following:
+
+  $$\Delta E \approx  \frac{\partial E}{\partial w_i} \Delta w_i
+            = \frac{\partial E}{\partial w_i} *(- \epsilon \frac{\partial E}{\partial w_i})
+            = - \epsilon \left(\frac{\partial E}{\partial w_i}\right)^2$$
+
+The right way to think about this method is through gradient descent.  The
+gradient points in direction of steepest increase, following it in the
+opposite direction is steepest descent.  Then if we don't make too large steps
+we will decrease.
+
+Choosing the learning rate is hard.
+
 # The error surface of a linear neuron
 
 # Learning the weights of a logistic output neuron
@@ -12,3 +103,46 @@ output: html_document
 # The backpropagation algorithm
 
 # Using the derivaties computed by backpropagation
+
+
+# learning weights of linear neurons
+
+
+
+delta-rule for linear output neuron:
+
+  delta w_i = - eps (del E)/(del w_i)
+            = sum_{n in training} eps x_i^n (t^n - y^n)
+
+  superscripts index for which training case
+
+Learning rate eps is essential for getting convergence (or at least getting
+  very close to a good answer).
+
+If you almost always have the same number of portions of ketchup and chips
+it will be hard to decide which part of the price belongs to which.
+
+The error surface can be very complicated.
+
+Learning can get to be very slow if the level sets have very elongated ellipses
+(in the case of linear neurons where the surface is at least a quadratic bowl)
+
+delta-rule for logistic output neuron:
+
+  delta w_i = - sum_n x_i^n y^n (1 - y^n) (t^n - y^n)
+
+  rule like before with y^n (1 - y^n) added, this is the slope of the logistic
+  function:
+  y = 1 / (1 + exp(-z))  => dy/dz = y (1 - y)
+
+We don’t know what the hidden units ought to do, but we can compute how fast
+the error changes as we change a hidden activity.
+–  Instead of using desired activities to train the hidden units, use error
+   derivatives w.r.t. hidden activities.
+–  Each hidden activity can affect many output units and can therefore have
+   many separate effects on the error. These effects must be combined.
+
+We can compute error derivatives for all the hidden units efficiently at the
+same time.
+–  Once we have the error derivatives for the hidden activities, its easy to get
+   the error derivatives for the weights going into a hidden unit.
