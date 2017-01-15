@@ -103,3 +103,7 @@ Four effective ways to learn an RNN
 - Echo State Networks (very carefully chosen hidden network, where then mostly
   just the hidden -> output is learned)
 - Good initialization with momentum
+
+# Long term short term memory (LSTM)
+
+Use purposely designed memory cells with "write", "read" and "keep" gates.
