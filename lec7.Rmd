@@ -1,0 +1,53 @@
+---
+title: "Notes Lecture 7: Recurrent Neural Networks"
+output: html_document
+---
+
+# Modeling Sequences; a brief overview
+
+Use methods from supervised learning, but doesn't require a separate teaching
+signal.  (next point in sequence, pixels or patch in picture from whole
+picture)
+
+Autoregressive models; predict a term from a fixed length of previous terms
+in the sequence.  We can do this just as an average of these previous terms,
+or give the prediction some hidden state.  This hidden state can then have
+its own internal dynamics; i.e. we can move from memoryless (e.g. weighted
+average of previous terms) to a model than can store information in its hidden
+state for a long time.
+
+If the dynamics of the hidden state are noisy, and the way it generates
+observations from the hidden state is noisy, we can never know the hidden
+state exactly.
+
+There are two situations in which the deduction of the state is tractable.
+
+- linear dynamical system: the hidden state has linear dynamics with Gaussian
+  noise, and the observations use a linear model with Gaussian noise.  Here we
+  can compute the distribution of the hidden state using Kalman filters.
+- hidden markov model; can use dynamic programming for getting the distribution
+  of the hidden states, and then have an efficient learning model.
+
+An HMM with n hidden states has only memory for log(n) bits.  For generating
+e.g. speech this is a clear restriction (can only remember a limited amount
+about first part of sentence when generating the second half; intonation,
+syntax, semantics, accent of speaker, ...).
+
+Recurrent neural networks:
+
+- distributed hidden state; this allows them to store lots of information
+  about the past efficiently.
+- nonlinear dynamics; this allows them to update the hidden state in complicated
+  ways.
+
+Recurrent neural networks are deterministic in contrast to the linear systems
+and HMM mentioned above.  But from the observations so far we have a
+deterministic method for estimating the distribution of the hidden state.  The
+deterministic state of the RNN can be compared to those estimates.
+
+RNN can show lots of different behaviors, but because of this computational
+power they are hard to train.
+
+# Training RNNs with backpropagation
+
+
