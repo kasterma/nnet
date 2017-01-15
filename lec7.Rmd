@@ -84,3 +84,22 @@ states learn four different activity patterns that correspond to the states of
 the FSA.  So have correspondence, state in FSA, activity vector in RNN.  In this
 way an RNN with n nodes has $2^n$ binary activation vectors (though states can
 be more subtle than that).  
+
+
+# What makes it difficult to train an RNN
+
+Exploding and vanishing gradient problem.  These effects here are greater b/c
+with the number of steps being larger than number of hidden layers in a deep
+network it happens.  Can be partly dealt with by choosing good initial weigths.
+
+Example with two color regions
+
+Four effective ways to learn an RNN
+
+- LSTM (change architecture to make it good at learning things; make it out of
+  little modules)
+- Hessian Free Optimization (use different optimizer that can deal with very
+  small gradients)
+- Echo State Networks (very carefully chosen hidden network, where then mostly
+  just the hidden -> output is learned)
+- Good initialization with momentum
