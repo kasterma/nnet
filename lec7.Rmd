@@ -50,4 +50,37 @@ power they are hard to train.
 
 # Training RNNs with backpropagation
 
+Assume: integer time, where every link is evaluated at every tick.
 
+Equivalence between layered feedforward network with weight constraints and RNN
+by unrolling the network.
+
+Note: it is easy to modify the backpropagation algorithm to incorporate linear
+restraints between the weights.
+
+- compute the gradients as usual
+- modify the gradients so they maintain the contraints.
+
+To contrain: $w_1 = w_2$, need to ensure $\Delta w_1 = \Delta w_2$.  Compute
+$\delta E / \delta w_i$, and use $\delta E / \delta w_0 + \delta E / \delta w_1$
+for both $w_1$ and $w_2$.
+
+(maybe better average; mentioned in the video, but not explained when to choose,
+but if you average the total change is still of the same size order as the other
+changes in stead of being twice too big.  Does this matter?)
+
+There is an extra issue to deal with; we need to give an initial state to all
+hidden units.  Can learn these parameters like you learn the rest; give
+initial guesses, and then learn them during backprop.
+
+# A toy example of training an RNN
+
+Learn binary addition, where at each timestep get the next digits.  Can learn
+this with an FSA, with four states.  Note, one step get input, next step use
+it in its output; output is delayed one step past first guess.
+
+Can do this with a network that has three hidden states, fully connected.  These
+states learn four different activity patterns that correspond to the states of
+the FSA.  So have correspondence, state in FSA, activity vector in RNN.  In this
+way an RNN with n nodes has $2^n$ binary activation vectors (though states can
+be more subtle than that).  
