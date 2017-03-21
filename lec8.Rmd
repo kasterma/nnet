@@ -1,0 +1,81 @@
+---
+title: "Lecture 8"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(DiagrammeR)
+```
+
+
+## Modeling Character Strings with Multiplicative Connections
+
+Working with characters versus words; any method which can learn interesting
+things from a text "should" be able to deal with the relavitely minor
+additional problem of recognizing words.  (this turns out to be true)
+
+We want something that can read wikipedia and understand the world.
+
+Can avoid lots of preprocessing.
+
+Also when we are predicting the next character we are dealing with some maybe
+100 different characters (symbols) to predict, and not some 10k words.  This
+means the softmax is over a more reasonable number of classes.
+
+The obvious recurrent network has a layer of hidden units, and then as input
+the previous activations through some weighting, and the new character input.
+
+The hidden state can encode information that e.g. the word we are now looking
+at looks like a verb.  Use this (and much more encoded in the hidden state)
+together with current character to determine new state.
+
+The current character determines the whole hidden state to hidden state
+transition matrix.  This could give a lot of parameters, and result in
+overfitting.  So want to share parameters (e.g. digits have similar matrices)
+
+Using factors to implement multiplicative interactions.
+
+$$ c_f = (b^T w_f) (a^T u_f) v_f $$
+
+The outputs of the factor $c_f$ are determined by taking inputs $b$ and $a$
+taking inner products with weight vectors $w_f$ and $u_f$ and mulitplying the
+result with weight vector $v_f$.
+
+$$ c_f = (b^T w_f) (u_f v_f ^T) a $$
+
+Here $u_f v_f^T$ is a rank 1 matrix.  Then add many of these factors together.
+
+## Learning to Predict the Next Character using HF
+
+Trained a network, how to figure out some things/indications about what it
+"knows".
+
+## Echo state networks
+
+Clever trick that makes it much easier to learn a recurrent neural network.
+
+Setup weigths to have a large number of coupled oscilators, the input influences
+the state of these oscilators, and the output is predicted from this state.
+
+Idea: use this initialization, but then use backprop through time to learn to
+do a better job.
+
+Idea: use some random layers to expand the input to a large random expansion,
+and then learn a linear layer on top of this.  In RNN, have input -> hidden and
+hidden -> hidden connections be random, and only learn the hidden -> output
+connections.  Need to set the random connections very carefully to have the
+hidden activations not explode or die out.
+
+Set the hidden -> hidden connections so that the length of the activation
+vector doesn't change after each iteration.  This allows the input to echo
+around the network a long time.
+
+Also use sparse connectivity.  This creates loosely coupled oscilators.
+
+The input->hidden connections need to be chosen carefully, dive the oscilators,
+but don't wipe out earlier saved state.
+
+Learning is so fast (since only learning hidden -> output) so can experiment
+lots.
+
+Example: sine wave frequency as input, sine wave as output.
